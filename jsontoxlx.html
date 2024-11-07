@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertitore JSON in XLS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #fileInput {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Convertitore JSON in XLS</h1>
+    <input type="file" id="fileInput" accept=".json">
+    <button onclick="convertToXLS()">Converti in XLS</button>
+
+    <script>
+        function convertToXLS() {
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("Per favore carica un file JSON.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const jsonData = JSON.parse(event.target.result);
+                const lavaggi = jsonData.lavaggi;
+
+                const data = [];
+                for (let key in lavaggi) {
+                    if (lavaggi.hasOwnProperty(key)) {
+                        const item = lavaggi[key];
+                        const date = new Date(item.date);
+                        date.setHours(date.getHours());
+
+                        data.push({
+                            "Date": formatDate(date),
+                            "Operator": item.operator,
+                            "Company": item.company,
+                            "License Plate": item.licensePlate
+                        });
+                    }
+                }
+
+                const ws = XLSX.utils.json_to_sheet(data);
+
+                // Calcolare la larghezza delle colonne per tutte le colonne
+                const maxLengths = data.reduce((lengths, row) => {
+                    Object.keys(row).forEach((key, index) => {
+                        const length = row[key].toString().length;
+                        if (!lengths[index] || lengths[index] < length) {
+                            lengths[index] = length;
+                        }
+                    });
+                    return lengths;
+                }, []);
+
+                // Impostare la larghezza delle colonne
+                ws['!cols'] = maxLengths.map(length => ({ wch: length }));
+
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Lavaggi");
+
+                XLSX.writeFile(wb, "lavaggi.xlsx");
+            };
+            reader.readAsText(file);
+        }
+
+        function formatDate(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+
+            return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+        }
+    </script>
+
+    <!-- Caricamento della libreria XLSX -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</body>
+</html>
