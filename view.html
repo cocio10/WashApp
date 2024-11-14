@@ -22,6 +22,7 @@
             width: 90%;
             max-width: 800px;
             overflow-x: auto;
+            text-align: center;
         }
         table {
             width: 100%;
@@ -41,6 +42,19 @@
         }
         tr:nth-child(even) {
             background-color: #F9F9F9;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #03A9F4;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0288D1;
         }
     </style>
 
@@ -94,11 +108,21 @@
 
         // Carica i dati al caricamento della pagina
         window.addEventListener('load', caricaDati);
+
+        // Funzione per esportare la tabella in un file Excel
+        window.esportaExcel = function() {
+            const tabella = document.getElementById('tabella-dati');
+            const ws = XLSX.utils.table_to_sheet(tabella);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Lavaggi");
+            XLSX.writeFile(wb, "lavaggi.xlsx");
+        };
     </script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Storico Lavaggi</h1>
+        <h1>Storico Lavaggi</h1> <button onclick="esportaExcel()">Esporta in Excel</button>
         <table id="tabella-dati">
             <!-- La tabella verrà popolata dinamicamente -->
         </table>
