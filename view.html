@@ -43,7 +43,7 @@
         tr:nth-child(even) {
             background-color: #F9F9F9;
         }
-        button, select {
+        button {
             margin-top: 20px;
             padding: 10px 20px;
             font-size: 16px;
@@ -53,12 +53,8 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        button:hover, select:hover {
+        button:hover {
             background-color: #0288D1;
-        }
-        select {
-            margin-right: 10px;
-            cursor: pointer;
         }
     </style>
 
@@ -83,51 +79,37 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        let datiLavaggi = []; // Array globale per i dati
-
-        // Funzione per leggere i dati dal database
+        // Funzione per leggere i dati dal database e visualizzarli in una tabella
         function caricaDati() {
             const dbRef = ref(database, 'lavaggi');
             onValue(dbRef, (snapshot) => {
-                datiLavaggi = Object.values(snapshot.val() || {});
-                aggiornaTabella(datiLavaggi);
-            });
-        }
-
-        // Aggiorna la tabella con i dati forniti
-        function aggiornaTabella(dati) {
-            const tabella = document.getElementById('tabella-dati');
-            tabella.innerHTML = `
-                <tr>
-                    <th>Data</th>
-                    <th>Operatore</th>
-                    <th>Azienda</th>
-                    <th>Targa</th>
-                </tr>
-            `;
-            dati.forEach(lavaggio => {
-                const riga = document.createElement('tr');
-                riga.innerHTML = `
-                    <td>${lavaggio.date}</td>
-                    <td>${lavaggio.operator}</td>
-                    <td>${lavaggio.company}</td>
-                    <td>${lavaggio.licensePlate}</td>
+                const dati = snapshot.val();
+                const tabella = document.getElementById('tabella-dati');
+                tabella.innerHTML = `
+                    <tr>
+                        <th>Data</th>
+                        <th>Operatore</th>
+                        <th>Azienda</th>
+                        <th>Targa</th>
+                    </tr>
                 `;
-                tabella.appendChild(riga);
+                for (let id in dati) {
+                    const riga = document.createElement('tr');
+                    riga.innerHTML = `
+                        <td>${new Date(dati[id].date).toLocaleString()}</td>
+                        <td>${dati[id].operator}</td>
+                        <td>${dati[id].company}</td>
+                        <td>${dati[id].licensePlate}</td>
+                    `;
+                    tabella.appendChild(riga);
+                }
             });
         }
 
-        // Filtra i dati per mese
-        function filtraPerMese() {
-            const meseSelezionato = document.getElementById('filtro-mese').value;
-            const datiFiltrati = datiLavaggi.filter(lavaggio => {
-                const meseLavaggio = lavaggio.date.split('/')[1]; // Estrae il mese dalla data
-                return meseSelezionato === "" || meseLavaggio === meseSelezionato;
-            });
-            aggiornaTabella(datiFiltrati);
-        }
+        // Carica i dati al caricamento della pagina
+        window.addEventListener('load', caricaDati);
 
-        // Esporta la tabella in formato Excel
+        // Funzione per esportare la tabella in un file Excel
         window.esportaExcel = function() {
             const tabella = document.getElementById('tabella-dati');
             const ws = XLSX.utils.table_to_sheet(tabella);
@@ -135,34 +117,12 @@
             XLSX.utils.book_append_sheet(wb, ws, "Lavaggi");
             XLSX.writeFile(wb, "lavaggi.xlsx");
         };
-
-        // Carica i dati al caricamento della pagina
-        window.addEventListener('load', caricaDati);
     </script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Storico Lavaggi</h1>
-        <div>
-            <label for="filtro-mese">Filtra per mese:</label>
-            <select id="filtro-mese" onchange="filtraPerMese()">
-                <option value="">Tutti</option>
-                <option value="01">Gennaio</option>
-                <option value="02">Febbraio</option>
-                <option value="03">Marzo</option>
-                <option value="04">Aprile</option>
-                <option value="05">Maggio</option>
-                <option value="06">Giugno</option>
-                <option value="07">Luglio</option>
-                <option value="08">Agosto</option>
-                <option value="09">Settembre</option>
-                <option value="10">Ottobre</option>
-                <option value="11">Novembre</option>
-                <option value="12">Dicembre</option>
-            </select>
-            <button onclick="esportaExcel()">Esporta in Excel</button>
-        </div>
+        <h1>Storico Lavaggi</h1> <button onclick="esportaExcel()">Esporta in Excel</button>
         <table id="tabella-dati">
             <!-- La tabella verrà popolata dinamicamente -->
         </table>
