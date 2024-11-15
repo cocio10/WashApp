@@ -116,32 +116,16 @@
                 tabella.appendChild(riga);
             });
         }
-                // Esporta la funzione di filtro nel contesto globale
-        window.filtraPerMese = function() {
-            console.log("Funzione filtraPerMese chiamata"); // Log per verificare che la funzione venga chiamata
-        
+
+        // Filtra i dati per mese
+        function filtraPerMese() {
             const meseSelezionato = document.getElementById('filtro-mese').value;
-            console.log("Mese selezionato:", meseSelezionato); // Log del mese selezionato
-        
-            if (!datiLavaggi || !Array.isArray(datiLavaggi)) {
-                console.error("datiLavaggi non è definito o non è un array:", datiLavaggi);
-                return;
-            }
-        
-            // Filtro dei dati
             const datiFiltrati = datiLavaggi.filter(lavaggio => {
-                console.log("Elaborazione lavaggio:", lavaggio); // Log di ogni elemento elaborato
-                const meseLavaggio = lavaggio.date.split('/')[1]; // Estrai il mese dalla data
-                console.log("Mese del lavaggio:", meseLavaggio); // Log del mese estratto
-        
+                const meseLavaggio = lavaggio.date.split('/')[1]; // Estrae il mese dalla data
                 return meseSelezionato === "" || meseLavaggio === meseSelezionato;
             });
-        
-            console.log("Dati filtrati:", datiFiltrati); // Log dei dati filtrati
-        
-            // Aggiorna la tabella
             aggiornaTabella(datiFiltrati);
-        };
+        }
 
         // Esporta la tabella in formato Excel
         window.esportaExcel = function() {
