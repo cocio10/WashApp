@@ -96,7 +96,21 @@
             const tabella = document.getElementById('tabella-dati');
             tabella.innerHTML = `
                 <tr>
-                    <th>Data</th>
+                    <th>Mese: <select id="mese" onchange="filtraPerMese(this.value)">
+            <option value="">Tutti</option>
+            <option value="1">Gennaio</option>
+            <option value="2">Febbraio</option>
+            <option value="3">Marzo</option>
+            <option value="4">Aprile</option>
+            <option value="5">Maggio</option>
+            <option value="6">Giugno</option>
+            <option value="7">Luglio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Settembre</option>
+            <option value="10">Ottobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Dicembre</option>
+        </select></th>
                     <th>Operatore</th>
                     <th>Azienda</th>
                     <th>Targa</th>
@@ -145,22 +159,6 @@
 <body>
     <div class="container">
         <h1>Storico Lavaggi</h1>
-        <label for="mese">Filtra per mese:</label>
-        <select id="mese" onchange="filtraPerMese(this.value)">
-            <option value="">Tutti</option>
-            <option value="1">Gennaio</option>
-            <option value="2">Febbraio</option>
-            <option value="3">Marzo</option>
-            <option value="4">Aprile</option>
-            <option value="5">Maggio</option>
-            <option value="6">Giugno</option>
-            <option value="7">Luglio</option>
-            <option value="8">Agosto</option>
-            <option value="9">Settembre</option>
-            <option value="10">Ottobre</option>
-            <option value="11">Novembre</option>
-            <option value="12">Dicembre</option>
-        </select>
         <button onclick="esportaExcel()">Esporta in Excel</button>
         <table id="tabella-dati">
             <!-- La tabella verrà popolata dinamicamente -->
