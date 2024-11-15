@@ -56,14 +56,15 @@
         button:hover {
             background-color: #0288D1;
         }
+        #filtro-mese {
+            margin-bottom: 10px;
+        }
     </style>
 
-    <!-- Firebase v9 (moduli) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        // Configurazione Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDqZqktT_B8DduRalNBAPRq7oVfF9q6WEw",
             authDomain: "washapp-e88c6.firebaseapp.com",
@@ -75,14 +76,11 @@
             measurementId: "G-2F1WQFWSVY"
         };
 
-        // Inizializza Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Variabile globale per memorizzare i dati originali
         let datiOriginali = [];
 
-        // Funzione per leggere i dati dal database e visualizzarli in una tabella
         function caricaDati() {
             const dbRef = ref(database, 'lavaggi');
             onValue(dbRef, (snapshot) => {
@@ -91,26 +89,11 @@
             });
         }
 
-        // Funzione per aggiornare la tabella con i dati
         function aggiornaTabella(dati) {
             const tabella = document.getElementById('tabella-dati');
             tabella.innerHTML = `
                 <tr>
-                    <th><label for="mese">Mese:</label><select id="mese" onchange="filtraPerMese(this.value)">
-            <option value="">Tutti</option>
-            <option value="1">Gennaio</option>
-            <option value="2">Febbraio</option>
-            <option value="3">Marzo</option>
-            <option value="4">Aprile</option>
-            <option value="5">Maggio</option>
-            <option value="6">Giugno</option>
-            <option value="7">Luglio</option>
-            <option value="8">Agosto</option>
-            <option value="9">Settembre</option>
-            <option value="10">Ottobre</option>
-            <option value="11">Novembre</option>
-            <option value="12">Dicembre</option>
-        </select></th>
+                    <th>Data</th>
                     <th>Operatore</th>
                     <th>Azienda</th>
                     <th>Targa</th>
@@ -128,13 +111,16 @@
             }
         }
 
-        // Funzione per filtrare i dati per mese
         function filtraPerMese(mese) {
             console.log("Filtro per mese selezionato:", mese);
+            if (mese === "") {
+                aggiornaTabella(datiOriginali);
+                return;
+            }
             const datiFiltrati = Object.fromEntries(
                 Object.entries(datiOriginali).filter(([id, item]) => {
                     const data = new Date(item.date);
-                    return data.getMonth() + 1 === parseInt(mese); // +1 perché i mesi sono indicizzati da 0
+                    return data.getMonth() + 1 === parseInt(mese);
                 })
             );
             aggiornaTabella(datiFiltrati);
@@ -142,10 +128,8 @@
 
         window.filtraPerMese = filtraPerMese;
 
-        // Carica i dati al caricamento della pagina
         window.addEventListener('load', caricaDati);
 
-        // Funzione per esportare la tabella in un file Excel
         window.esportaExcel = function() {
             const tabella = document.getElementById('tabella-dati');
             const ws = XLSX.utils.table_to_sheet(tabella);
@@ -159,6 +143,24 @@
 <body>
     <div class="container">
         <h1>Storico Lavaggi</h1>
+        <div id="filtro-mese">
+            <label for="mese">Seleziona Mese:</label>
+            <select id="mese" onchange="filtraPerMese(this.value)">
+                <option value="">Tutti</option>
+                <option value="1">Gennaio</option>
+                <option value="2">Febbraio</option>
+                <option value="3">Marzo</option>
+                <option value="4">Aprile</option>
+                <option value="5">Maggio</option>
+                <option value="6">Giugno</option>
+                <option value="7">Luglio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Settembre</option>
+                <option value="10">Ottobre</option>
+                <option value="11">Novembre</option>
+                <option value="12">Dicembre</option>
+            </select>
+        </div>
         <button onclick="esportaExcel()">Esporta in Excel</button>
         <table id="tabella-dati">
             <!-- La tabella verrà popolata dinamicamente -->
