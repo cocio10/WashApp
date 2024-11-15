@@ -3,67 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WashApp - Visualizza Lavaggi</title>
+    <title>WashApp</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: baseline;
             height: 100vh;
-            background-color: #F5F5F5;
+            background-color: #F5F5F5; /* Colore di sfondo */
             margin: 0;
+		overflow: hidden;
         }
         .container {
             background-color: #FFFFFF;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 800px;
-            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
             text-align: center;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #DDDDDD;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #03A9F4;
-            color: #FFFFFF;
-        }
-        tr:nth-child(even) {
-            background-color: #F9F9F9;
-        }
+	    img {
+   	 filter: drop-shadow(0px 10px 15px rgba(0, 0, 0, 1));
+	}
         button {
-            margin-top: 20px;
-            padding: 10px 20px;
+            width: 100%;
+            max-width: 200px;
+            margin: 10px auto;
+            padding: 10px;
             font-size: 16px;
-            background-color: #03A9F4;
+            background-color: #03A9F4; /* Colore ciano per i bottoni non selezionati */
             color: #FFFFFF;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #0288D1;
+            background-color: #0288D1; /* Colore hover per i bottoni non selezionati */
+        }
+        button.selected-operator {
+            background-color: #2155f3; /* Colore blu per l'operatore selezionato */
+        }
+        button.unselected-operator {
+            background-color: #03A9F4; /* Colore ciano per gli operatori non selezionati */
+        }
+        .azienda-logo {
+            width: 50px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .azienda-logo.selected {
+            background-color: #2155f3; /* Colore blu per i loghi cliccati */
+        }
+        input[type="radio"] {
+            display: none;
+        }
+        label {
+            cursor: pointer;
+			display: inline-block;
+        }
+        label.selected {
+            background-color: #2155f3; /* Colore blu per il logo selezionato */
+        }
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid #DDD;
+        }
+        h1, h3 {
+            color: #2155f3; /* Colore del testo */
         }
     </style>
-
     <!-- Firebase v9 (moduli) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        // Configurazione Firebase
+        // Configurazione Firebase (sostituisci con i tuoi dati)
         const firebaseConfig = {
             apiKey: "AIzaSyDqZqktT_B8DduRalNBAPRq7oVfF9q6WEw",
             authDomain: "washapp-e88c6.firebaseapp.com",
@@ -79,53 +99,110 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Funzione per leggere i dati dal database e visualizzarli in una tabella
-        function caricaDati() {
-            const dbRef = ref(database, 'lavaggi');
-            onValue(dbRef, (snapshot) => {
-                const dati = snapshot.val();
-                const tabella = document.getElementById('tabella-dati');
-                tabella.innerHTML = `
-                    <tr>
-                        <th>Data</th>
-                        <th>Operatore</th>
-                        <th>Azienda</th>
-                        <th>Targa</th>
-                    </tr>
-                `;
-                for (let id in dati) {
-                    const riga = document.createElement('tr');
-                    riga.innerHTML = `
-                        <td>${new Date(dati[id].date).toLocaleString()}</td>
-                        <td>${dati[id].operator}</td>
-                        <td>${dati[id].company}</td>
-                        <td>${dati[id].licensePlate}</td>
-                    `;
-                    tabella.appendChild(riga);
-                }
-            });
-        }
+        // Funzione per aggiungere il lavaggio al database
+        window.aggiungiLavaggio = function() {
+            const operatore = document.getElementById('operatore-selezionato').value;
+            const azienda = document.querySelector('input[name="azienda"]:checked')?.value;
+            const targa = document.getElementById('targa').value;
 
-        // Carica i dati al caricamento della pagina
-        window.addEventListener('load', caricaDati);
+            // Verifica che la targa sia nel formato corretto (esempio: ABC1234)
+            const targaRegex = /^[A-Za-z]{2}\d{3}[A-Za-z]{2}$/;
+            if (!targaRegex.test(targa)) {
+                alert('La targa deve essere nel formato corretto (es. AA000AA).');
+                return;
+            }
 
-        // Funzione per esportare la tabella in un file Excel
-        window.esportaExcel = function() {
-            const tabella = document.getElementById('tabella-dati');
-            const ws = XLSX.utils.table_to_sheet(tabella);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Lavaggi");
-            XLSX.writeFile(wb, "lavaggi.xlsx");
+            if (operatore && azienda && targa) {
+                const nuovoLavaggio = {
+                    date: new Date().toISOString(),
+                    operator: operatore,
+                    company: azienda,
+                    licensePlate: targa
+                };
+
+                // Aggiungi il nuovo lavaggio nel database Firebase
+                const dbRef = ref(database, 'lavaggi');
+                push(dbRef, nuovoLavaggio)
+                    .then(() => {
+                        alert('Dati aggiunti con successo!');
+                        document.getElementById('targa').value = '';  // Pulisci la targa
+                        document.getElementById('azienda-selection').style.display = 'none';  // Nascondi la sezione
+                    })
+                    .catch((error) => {
+                        console.error('Errore nell\'aggiungere i dati:', error);
+                    });
+            } else {
+                alert('Tutti i campi devono essere compilati.');
+            }
         };
     </script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Storico Lavaggi</h1> <button onclick="esportaExcel()">Esporta in Excel</button>
-        <table id="tabella-dati">
-            <!-- La tabella verrà popolata dinamicamente -->
-        </table>
+        <h1>WashApp</h1>
+
+        <h3>Seleziona l'operatore</h3>
+        <button id="aldo" class="unselected-operator" onclick="mostraLoghi('Aldo')">Aldo</button>
+        <button id="carlo" class="unselected-operator" onclick="mostraLoghi('Carlo')">Carlo</button>
+        <button id="fabrizio" class="unselected-operator" onclick="mostraLoghi('Fabrizio')">Fabrizio</button>
+
+        <h3>Seleziona l'azienda</h3>
+        <div id="azienda-selection" style="display:none;">
+            <input type="radio" name="azienda" value="Azienda1" id="azienda1" onclick="selezionaAzienda('Azienda1')">
+            <label for="azienda1"><img src="logo1.png" class="azienda-logo"></label>
+
+            <input type="radio" name="azienda" value="Azienda2" id="azienda2" onclick="selezionaAzienda('Azienda2')">
+            <label for="azienda2"><img src="logo2.png" class="azienda-logo"></label>
+
+            <input type="radio" name="azienda" value="Azienda3" id="azienda3" onclick="selezionaAzienda('Azienda3')">
+            <label for="azienda3"><img src="logo1.png" class="azienda-logo"></label>
+
+            <input type="radio" name="azienda" value="Azienda4" id="azienda4" onclick="selezionaAzienda('Azienda4')">
+            <label for="azienda4"><img src="logo1.png" class="azienda-logo"></label>
+
+            <input type="radio" name="azienda" value="Azienda5" id="azienda5" onclick="selezionaAzienda('Azienda5')">
+            <label for="azienda5"><img src="logo1.png" class="azienda-logo"></label>
+        </div>
+        <input type="text" id="targa" placeholder="Inserisci la targa">
+        <button onclick="aggiungiLavaggio()">Aggiungi</button>
+
+        <input type="hidden" id="operatore-selezionato">
     </div>
+
+    <script>
+        // Funzione per mostrare i loghi delle aziende e memorizzare l'operatore selezionato
+        function mostraLoghi(operatore) {
+            document.getElementById('operatore-selezionato').value = operatore;
+            document.getElementById('azienda-selection').style.display = 'block';
+
+            // Rimuovi il colore di selezione da tutti gli operatori
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.classList.remove('selected-operator');
+                button.classList.add('unselected-operator');
+            });
+
+            // Aggiungi il colore di selezione all'operatore cliccato
+            const selectedButton = document.querySelector(`#${operatore.toLowerCase()}`);
+            selectedButton.classList.remove('unselected-operator');
+            selectedButton.classList.add('selected-operator');
+        }
+
+        function selezionaAzienda(azienda) {
+            // Seleziona l'input radio dell'azienda cliccata
+            const radioButton = document.querySelector(`input[value="${azienda}"]`);
+            radioButton.checked = true;
+
+            // Rimuovi la selezione da tutti i loghi
+            const labels = document.querySelectorAll('label');
+            labels.forEach(label => {
+                label.classList.remove('selected');
+            });
+
+            // Aggiungi la classe per cambiare il colore dello sfondo al label selezionato
+            const selectedLabel = document.querySelector(`label[for="azienda${azienda.charAt(azienda.length - 1)}"]`);
+            selectedLabel.classList.add('selected');
+        }
+    </script>
 </body>
 </html>
