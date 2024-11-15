@@ -79,31 +79,51 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
+        // Variabile globale per memorizzare i dati originali
+        let datiOriginali = [];
+
         // Funzione per leggere i dati dal database e visualizzarli in una tabella
         function caricaDati() {
             const dbRef = ref(database, 'lavaggi');
             onValue(dbRef, (snapshot) => {
-                const dati = snapshot.val();
-                const tabella = document.getElementById('tabella-dati');
-                tabella.innerHTML = `
-                    <tr>
-                        <th>Data</th>
-                        <th>Operatore</th>
-                        <th>Azienda</th>
-                        <th>Targa</th>
-                    </tr>
-                `;
-                for (let id in dati) {
-                    const riga = document.createElement('tr');
-                    riga.innerHTML = `
-                        <td>${new Date(dati[id].date).toLocaleString()}</td>
-                        <td>${dati[id].operator}</td>
-                        <td>${dati[id].company}</td>
-                        <td>${dati[id].licensePlate}</td>
-                    `;
-                    tabella.appendChild(riga);
-                }
+                datiOriginali = snapshot.val();
+                aggiornaTabella(datiOriginali);
             });
+        }
+
+        // Funzione per aggiornare la tabella con i dati
+        function aggiornaTabella(dati) {
+            const tabella = document.getElementById('tabella-dati');
+            tabella.innerHTML = `
+                <tr>
+                    <th>Data</th>
+                    <th>Operatore</th>
+                    <th>Azienda</th>
+                    <th>Targa</th>
+                </tr>
+            `;
+            for (let id in dati) {
+                const riga = document.createElement('tr');
+                riga.innerHTML = `
+                    <td>${new Date(dati[id].date).toLocaleString()}</td>
+                    <td>${dati[id].operator}</td>
+                    <td>${dati[id].company}</td>
+                    <td>${dati[id].licensePlate}</td>
+                `;
+                tabella.appendChild(riga);
+            }
+        }
+
+        // Funzione per filtrare i dati per mese
+        function filtraPerMese(mese) {
+            console.log("Filtro per mese selezionato:", mese);
+            const datiFiltrati = Object.fromEntries(
+                Object.entries(datiOriginali).filter(([id, item]) => {
+                    const data = new Date(item.date);
+                    return data.getMonth() + 1 === parseInt(mese); // +1 perché i mesi sono indicizzati da 0
+                })
+            );
+            aggiornaTabella(datiFiltrati);
         }
 
         // Carica i dati al caricamento della pagina
@@ -122,7 +142,24 @@
 </head>
 <body>
     <div class="container">
-        <h1>Storico Lavaggi</h1> <button onclick="esportaExcel()">Esporta in Excel</button>
+        <h1>Storico Lavaggi</h1>
+        <label for="mese">Filtra per mese:</label>
+        <select id="mese" onchange="filtraPerMese(this.value)">
+            <option value="">Tutti</option>
+            <option value="1">Gennaio</option>
+            <option value="2">Febbraio</option>
+            <option value="3">Marzo</option>
+            <option value="4">Aprile</option>
+            <option value="5">Maggio</option>
+            <option value="6">Giugno</option>
+            <option value="7">Luglio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Settembre</option>
+            <option value="10">Ottobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Dicembre</option>
+        </select>
+        <button onclick="esportaExcel()">Esporta in Excel</button>
         <table id="tabella-dati">
             <!-- La tabella verrà popolata dinamicamente -->
         </table>
