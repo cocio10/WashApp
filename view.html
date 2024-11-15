@@ -3,139 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WashApp - Visualizza Dati</title>
+    <title>WashApp - Visualizza Lavaggi</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #F5F5F5;
+            margin: 0;
         }
         .container {
-            background-color: #ffffff;
+            background-color: #FFFFFF;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 800px;
+            overflow-x: auto;
+            text-align: center;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        table th, table td {
-            border: 1px solid #ddd;
+        table, th, td {
+            border: 1px solid #DDDDDD;
+        }
+        th, td {
             padding: 10px;
-            text-align: center;
+            text-align: left;
         }
-        table th {
+        th {
             background-color: #03A9F4;
-            color: #ffffff;
+            color: #FFFFFF;
         }
-        .controls {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
+        tr:nth-child(even) {
+            background-color: #F9F9F9;
         }
-        .controls label, .controls select, .controls button {
-            margin-right: 10px;
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #03A9F4;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0288D1;
         }
     </style>
+
+    <!-- Firebase v9 (moduli) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+
+        // Configurazione Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqZqktT_B8DduRalNBAPRq7oVfF9q6WEw",
+            authDomain: "washapp-e88c6.firebaseapp.com",
+            databaseURL: "https://washapp-e88c6-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "washapp-e88c6",
+            storageBucket: "washapp-e88c6.firebasestorage.app",
+            messagingSenderId: "10922677088",
+            appId: "1:10922677088:web:e09fc2783d3a0cde2b4405",
+            measurementId: "G-2F1WQFWSVY"
+        };
+
+        // Inizializza Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Funzione per leggere i dati dal database e visualizzarli in una tabella
+        function caricaDati() {
+            const dbRef = ref(database, 'lavaggi');
+            onValue(dbRef, (snapshot) => {
+                const dati = snapshot.val();
+                const tabella = document.getElementById('tabella-dati');
+                tabella.innerHTML = `
+                    <tr>
+                        <th>Data</th>
+                        <th>Operatore</th>
+                        <th>Azienda</th>
+                        <th>Targa</th>
+                    </tr>
+                `;
+                for (let id in dati) {
+                    const riga = document.createElement('tr');
+                    riga.innerHTML = `
+                        <td>${new Date(dati[id].date).toLocaleString()}</td>
+                        <td>${dati[id].operator}</td>
+                        <td>${dati[id].company}</td>
+                        <td>${dati[id].licensePlate}</td>
+                    `;
+                    tabella.appendChild(riga);
+                }
+            });
+        }
+
+        // Carica i dati al caricamento della pagina
+        window.addEventListener('load', caricaDati);
+
+        // Funzione per esportare la tabella in un file Excel
+        window.esportaExcel = function() {
+            const tabella = document.getElementById('tabella-dati');
+            const ws = XLSX.utils.table_to_sheet(tabella);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Lavaggi");
+            XLSX.writeFile(wb, "lavaggi.xlsx");
+        };
+    </script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>WashApp - Dati Lavaggi</h1>
-        <div class="controls">
-            <div>
-                <label for="mese">Filtra per mese:</label>
-                <select id="mese">
-                    <option value="">Tutti</option>
-                    <option value="01">Gennaio</option>
-                    <option value="02">Febbraio</option>
-                    <option value="03">Marzo</option>
-                    <option value="04">Aprile</option>
-                    <option value="05">Maggio</option>
-                    <option value="06">Giugno</option>
-                    <option value="07">Luglio</option>
-                    <option value="08">Agosto</option>
-                    <option value="09">Settembre</option>
-                    <option value="10">Ottobre</option>
-                    <option value="11">Novembre</option>
-                    <option value="12">Dicembre</option>
-                </select>
-                <button onclick="filtraPerMese()">Filtra</button>
-            </div>
-            <button onclick="esportaExcel()">Esporta in Excel</button>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Operatore</th>
-                    <th>Azienda</th>
-                    <th>Targa</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <!-- Dati popolati dinamicamente -->
-            </tbody>
+        <h1>Storico Lavaggi</h1>
+        <table id="tabella-dati">
+            <!-- La tabella verrà popolata dinamicamente -->
         </table>
+        <button onclick="esportaExcel()">Esporta in Excel</button>
     </div>
-
-    <!-- Importa XLSX.js per esportare in Excel -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-    <script>
-        let lavaggi = []; // Array globale per i dati
-
-        // Carica i dati dal file JSON
-        function caricaDati() {
-            fetch('/dati.json')
-                .then(response => response.json())
-                .then(data => {
-                    lavaggi = data; // Salva i dati in un array globale
-                    aggiornaTabella(lavaggi); // Popola la tabella inizialmente
-                })
-                .catch(error => {
-                    console.error('Errore nel caricamento dei dati:', error);
-                });
-        }
-
-        // Aggiorna la tabella con i dati forniti
-        function aggiornaTabella(dati) {
-            const tableBody = document.getElementById('table-body');
-            tableBody.innerHTML = ''; // Svuota la tabella
-            dati.forEach(lavaggio => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${new Date(lavaggio.date).toLocaleDateString()}</td>
-                    <td>${lavaggio.operator}</td>
-                    <td>${lavaggio.company}</td>
-                    <td>${lavaggio.licensePlate}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Filtra i dati per mese selezionato
-        function filtraPerMese() {
-            const meseSelezionato = document.getElementById('mese').value;
-            const datiFiltrati = lavaggi.filter(lavaggio => {
-                if (!meseSelezionato) return true; // Nessun filtro applicato
-                const meseLavaggio = new Date(lavaggio.date).toISOString().slice(5, 7); // Estrai il mese
-                return meseLavaggio === meseSelezionato;
-            });
-            aggiornaTabella(datiFiltrati); // Mostra i dati filtrati
-        }
-
-        // Esporta i dati in formato Excel
-        function esportaExcel() {
-            const ws = XLSX.utils.json_to_sheet(lavaggi); // Converte i dati in un foglio
-            const wb = XLSX.utils.book_new(); // Crea un nuovo file
-            XLSX.utils.book_append_sheet(wb, ws, 'Lavaggi'); // Aggiungi il foglio al file
-            XLSX.writeFile(wb, 'lavaggi.xlsx'); // Salva il file
-        }
-
-        // Carica i dati inizialmente
-        caricaDati();
-    </script>
 </body>
 </html>
