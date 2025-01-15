@@ -224,10 +224,7 @@
     <div class="container">
         <h1>WashApp</h1>
 
-        <h3>Inserisci il nome dell'operatore</h3>
-        <input type="text" id="operatore" placeholder="Nome operatore" oninput="salvaOperatore()">
-
-        <h3>Seleziona l'azienda</h3>
+        <input type="text" id="operatore" placeholder="Inserisci il tuo nome qui" oninput="salvaOperatore()">
         <div id="azienda-selection">
             <input type="radio" name="azienda" value="U-SAVE" id="azienda1" checked>
             <label for="azienda1">U-SAVE</label>
@@ -235,8 +232,6 @@
             <input type="radio" name="azienda" value="VIVARENT" id="azienda2">
             <label for="azienda2">VIVARENT</label>
         </div>
-
-        <h3>Seleziona il lavaggio</h3>
         <div id="lavaggio-selection">
             <input type="radio" name="lavaggio" value="MADDALENA" id="lavaggio1" checked>
             <label for="lavaggio1">MADDALENA</label>
@@ -244,9 +239,7 @@
             <input type="radio" name="lavaggio" value="RIPOSO" id="lavaggio2">
             <label for="lavaggio2">RIPOSO</label>
         </div>
-
-        <h3>Inserisci la targa</h3>
-        <input type="text" id="targa" placeholder="Es. AA000AA">
+        <input type="text" id="targa" placeholder="Inserisci la targa">
 
         <button onclick="aggiungiLavaggio()">Aggiungi Lavaggio</button>
         <hr>
