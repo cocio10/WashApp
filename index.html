@@ -51,37 +51,25 @@
             color: #2155f3; /* Colore del testo */
         }
     </style>
-</head>
-<body>
-    <div class="container">
-        <h1>WashApp</h1>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
-        <h3>Inserisci il nome dell'operatore</h3>
-        <input type="text" id="operatore" placeholder="Nome operatore" oninput="salvaOperatore()">
+        // Configurazione Firebase (sostituisci con i tuoi dati)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqZqktT_B8DduRalNBAPRq7oVfF9q6WEw",
+            authDomain: "washapp-e88c6.firebaseapp.com",
+            databaseURL: "https://washapp-e88c6-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "washapp-e88c6",
+            storageBucket: "washapp-e88c6.firebasestorage.app",
+            messagingSenderId: "10922677088",
+            appId: "1:10922677088:web:e09fc2783d3a0cde2b4405",
+            measurementId: "G-2F1WQFWSVY"
+        };
 
-        <h3>Seleziona l'azienda</h3>
-        <div id="azienda-selection">
-            <input type="radio" name="azienda" value="U-SAVE" id="azienda1">
-            <label for="azienda1">U-SAVE</label>
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-            <input type="radio" name="azienda" value="VIVARENT" id="azienda2">
-            <label for="azienda2">VIVARENT</label>
-        </div>
-
-        <h3>Seleziona il lavaggio</h3>
-        <div id="lavaggio-selection">
-            <input type="radio" name="lavaggio" value="MADDALENA" id="lavaggio1">
-            <label for="lavaggio1">MADDALENA</label>
-
-            <input type="radio" name="lavaggio" value="RIPOSO" id="lavaggio2">
-            <label for="lavaggio2">RIPOSO</label>
-        </div>
-
-        <input type="text" id="targa" placeholder="Inserisci la targa">
-        <button onclick="aggiungiLavaggio()">Aggiungi</button>
-    </div>
-
-    <script>
         // Salva il nome dell'operatore nei cookie
         function salvaOperatore() {
             const operatore = document.getElementById('operatore').value;
@@ -120,13 +108,56 @@
                 return;
             }
 
-            // Logica per inviare i dati al database (esempio Firebase)
-            console.log({ operatore, azienda, lavaggio, targa });
-            alert('Dati inviati con successo!');
+            const nuovoLavaggio = {
+                date: new Date().toISOString(),
+                operator: operatore,
+                company: azienda,
+                washType: lavaggio,
+                licensePlate: targa
+            };
+
+            const dbRef = ref(database, 'lavaggi');
+            push(dbRef, nuovoLavaggio)
+                .then(() => {
+                    alert('Dati inviati con successo!');
+                    document.getElementById('targa').value = '';
+                })
+                .catch((error) => {
+                    console.error('Errore durante l\'invio dei dati:', error);
+                });
         }
 
         // Recupera il nome dell'operatore all'avvio della pagina
         recuperaOperatore();
     </script>
+</head>
+<body>
+    <div class="container">
+        <h1>WashApp</h1>
+
+        <h3>Inserisci il nome dell'operatore</h3>
+        <input type="text" id="operatore" placeholder="Nome operatore" oninput="salvaOperatore()">
+
+        <h3>Seleziona l'azienda</h3>
+        <div id="azienda-selection">
+            <input type="radio" name="azienda" value="U-SAVE" id="azienda1">
+            <label for="azienda1">U-SAVE</label>
+
+            <input type="radio" name="azienda" value="VIVARENT" id="azienda2">
+            <label for="azienda2">VIVARENT</label>
+        </div>
+
+        <h3>Seleziona il lavaggio</h3>
+        <div id="lavaggio-selection">
+            <input type="radio" name="lavaggio" value="MADDALENA" id="lavaggio1">
+            <label for="lavaggio1">MADDALENA</label>
+
+            <input type="radio" name="lavaggio" value="RIPOSO" id="lavaggio2">
+            <label for="lavaggio2">RIPOSO</label>
+        </div>
+
+        <input type="text" id="targa" placeholder="Inserisci la targa">
+        <button onclick="aggiungiLavaggio()">Aggiungi</button>
+    </div>
 </body>
 </html>
