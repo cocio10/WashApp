@@ -50,6 +50,13 @@
         h1, h3 {
             color: #2155f3; /* Colore del testo */
         }
+        .filters {
+            margin-bottom: 20px;
+        }
+        select {
+            margin: 5px;
+            padding: 5px;
+        }
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
@@ -131,7 +138,69 @@
 
         // Recupera il nome dell'operatore all'avvio della pagina
         recuperaOperatore();
+
+        
+        let datiOriginali = [];
+
+        function caricaDati() {
+            const dbRef = ref(database, 'lavaggi');
+            onValue(dbRef, (snapshot) => {
+                datiOriginali = snapshot.val();
+                aggiornaTabella(datiOriginali);
+            });
+        }
+
+        function aggiornaTabella(dati) {
+            const tabella = document.getElementById('tabella-dati');
+            tabella.innerHTML = `
+                <tr>
+                    <th>Data</th>
+                    <th>Operatore</th>
+                    <th>Azienda</th>
+                    <th>Targa</th>
+                </tr>
+            `;
+            for (let id in dati) {
+                const riga = document.createElement('tr');
+                riga.innerHTML = `
+                    <td>${new Date(dati[id].date).toLocaleString()}</td>
+                    <td>${dati[id].operator}</td>
+                    <td>${dati[id].company}</td>
+                    <td>${dati[id].licensePlate}</td>
+                `;
+                tabella.appendChild(riga);
+            }
+        }
+
+        function applicaFiltri() {
+            const mese = parseInt(document.getElementById('mese').value) || null;
+            const tipoLavaggio = document.getElementById('lavaggio').value || null;
+
+            const datiFiltrati = Object.fromEntries(
+                Object.entries(datiOriginali).filter(([id, item]) => {
+                    const data = new Date(item.date);
+                    const filtroMese = mese ? data.getMonth() + 1 === mese : true;
+                    const filtroLavaggio = tipoLavaggio ? item.washType === tipoLavaggio : true;
+                    return filtroMese && filtroLavaggio;
+                })
+            );
+
+            aggiornaTabella(datiFiltrati);
+        }
+
+        window.applicaFiltri = applicaFiltri;
+
+        window.addEventListener('load', caricaDati);
+
+        window.esportaExcel = function() {
+            const tabella = document.getElementById('tabella-dati');
+            const ws = XLSX.utils.table_to_sheet(tabella);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Lavaggi");
+            XLSX.writeFile(wb, "lavaggi.xlsx");
+        };
     </script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -160,6 +229,39 @@
 
         <input type="text" id="targa" placeholder="Inserisci la targa">
         <button onclick="aggiungiLavaggio()">Aggiungi</button>
+    </div>
+
+        <div class="container">
+        <h1>Storico Lavaggi</h1>
+        <div class="filters">
+            <label for="mese">Seleziona Mese:</label>
+            <select id="mese" onchange="applicaFiltri()">
+                <option value="">Tutti</option>
+                <option value="1">Gennaio</option>
+                <option value="2">Febbraio</option>
+                <option value="3">Marzo</option>
+                <option value="4">Aprile</option>
+                <option value="5">Maggio</option>
+                <option value="6">Giugno</option>
+                <option value="7">Luglio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Settembre</option>
+                <option value="10">Ottobre</option>
+                <option value="11">Novembre</option>
+                <option value="12">Dicembre</option>
+            </select>
+
+            <label for="lavaggio">Tipo Lavaggio:</label>
+            <select id="lavaggio" onchange="applicaFiltri()">
+                <option value="">Tutti</option>
+                <option value="MADDALENA">MADDALENA</option>
+                <option value="RIPOSO">RIPOSO</option>
+            </select>
+        </div>
+        <button onclick="esportaExcel()">Esporta in Excel</button>
+        <table id="tabella-dati">
+            <!-- La tabella verrà popolata dinamicamente -->
+        </table>
     </div>
 </body>
 </html>
