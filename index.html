@@ -60,7 +60,7 @@
     </style>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
         // Configurazione Firebase (sostituisci con i tuoi dati)
         const firebaseConfig = {
@@ -174,7 +174,7 @@
 
         function applicaFiltri() {
             const mese = parseInt(document.getElementById('mese').value) || null;
-            const tipoLavaggio = document.getElementById('lavaggio').value || null;
+            const tipoLavaggio = document.getElementById('tipoLavaggio').value || null;
 
             const datiFiltrati = Object.fromEntries(
                 Object.entries(datiOriginali).filter(([id, item]) => {
@@ -227,15 +227,17 @@
             <label for="lavaggio2">RIPOSO</label>
         </div>
 
-        <input type="text" id="targa" placeholder="Inserisci la targa">
-        <button onclick="aggiungiLavaggio()">Aggiungi</button>
-    </div>
+        <h3>Inserisci la targa</h3>
+        <input type="text" id="targa" placeholder="Es. AB123CD" required>
 
-        <div class="container">
-        <h1>Storico Lavaggi</h1>
+        <button onclick="aggiungiLavaggio()">Aggiungi lavaggio</button>
+
+        <hr>
+
+        <h3>Filtra i lavaggi</h3>
         <div class="filters">
-            <label for="mese">Seleziona Mese:</label>
-            <select id="mese" onchange="applicaFiltri()">
+            <label for="mese">Seleziona mese:</label>
+            <select id="mese">
                 <option value="">Tutti</option>
                 <option value="1">Gennaio</option>
                 <option value="2">Febbraio</option>
@@ -251,17 +253,24 @@
                 <option value="12">Dicembre</option>
             </select>
 
-            <label for="lavaggio">Tipo Lavaggio:</label>
-            <select id="lavaggio" onchange="applicaFiltri()">
+            <label for="tipoLavaggio">Seleziona tipo di lavaggio:</label>
+            <select id="tipoLavaggio">
                 <option value="">Tutti</option>
                 <option value="MADDALENA">MADDALENA</option>
                 <option value="RIPOSO">RIPOSO</option>
             </select>
+
+            <button onclick="applicaFiltri()">Applica filtri</button>
         </div>
-        <button onclick="esportaExcel()">Esporta in Excel</button>
+
+        <hr>
+
+        <h3>Tabella Lavaggi</h3>
         <table id="tabella-dati">
-            <!-- La tabella verrà popolata dinamicamente -->
+            <!-- I dati verranno caricati qui -->
         </table>
+
+        <button onclick="esportaExcel()">Esporta in Excel</button>
     </div>
 </body>
 </html>
