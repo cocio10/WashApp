@@ -147,7 +147,7 @@
             push(dbRef, nuovoLavaggio)
                 .then(() => {
                     alert('Dati inviati con successo!');
-                    document.getElementById('targa').value = '';
+                    location.reload();
                 })
                 .catch((error) => {
                     console.error('Errore durante l\'invio dei dati:', error);
