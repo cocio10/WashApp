@@ -68,6 +68,15 @@
             <label for="azienda2">Azienda 2</label>
         </div>
 
+        <h3>Seleziona il lavaggio</h3>
+        <div id="lavaggio-selection">
+            <input type="radio" name="lavaggio" value="Lavaggio1" id="lavaggio1">
+            <label for="lavaggio1">MADDALENA</label>
+
+            <input type="radio" name="lavaggio" value="Lavaggio2" id="lavaggio2">
+            <label for="lavaggio2">RIPOSO</label>
+        </div>
+
         <input type="text" id="targa" placeholder="Inserisci la targa">
         <button onclick="aggiungiLavaggio()">Aggiungi</button>
     </div>
@@ -96,9 +105,10 @@
         function aggiungiLavaggio() {
             const operatore = document.getElementById('operatore').value;
             const azienda = document.querySelector('input[name="azienda"]:checked')?.value;
+            const lavaggio = document.querySelector('input[name="lavaggio"]:checked')?.value;
             const targa = document.getElementById('targa').value;
 
-            if (!operatore || !azienda || !targa) {
+            if (!operatore || !azienda || !lavaggio || !targa) {
                 alert('Tutti i campi devono essere compilati.');
                 return;
             }
@@ -111,7 +121,7 @@
             }
 
             // Logica per inviare i dati al database (esempio Firebase)
-            console.log({ operatore, azienda, targa });
+            console.log({ operatore, azienda, lavaggio, targa });
             alert('Dati inviati con successo!');
         }
 
