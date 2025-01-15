@@ -3,58 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WashApp - Visualizza Lavaggi</title>
+    <title>WashApp</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            padding: 20px;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: baseline;
             height: 100vh;
-            background-color: #F5F5F5;
+            background-color: #F5F5F5; /* Colore di sfondo */
             margin: 0;
+            overflow: hidden;
         }
         .container {
             background-color: #FFFFFF;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 800px;
-            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
             text-align: center;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #DDDDDD;
-        }
-        th, td {
+        input[type="text"] {
             padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #03A9F4;
-            color: #FFFFFF;
-        }
-        tr:nth-child(even) {
-            background-color: #F9F9F9;
+            margin: 10px 0;
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid #DDD;
         }
         button {
-            margin-top: 20px;
-            padding: 10px 20px;
+            width: 100%;
+            max-width: 200px;
+            margin: 10px auto;
+            padding: 10px;
             font-size: 16px;
-            background-color: #03A9F4;
+            background-color: #03A9F4; /* Colore ciano per i bottoni */
             color: #FFFFFF;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #0288D1;
+            background-color: #0288D1; /* Colore hover per i bottoni */
+        }
+        h1, h3 {
+            color: #2155f3; /* Colore del testo */
         }
         .filters {
             margin-bottom: 20px;
@@ -64,11 +58,11 @@
             padding: 5px;
         }
     </style>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 
+        // Configurazione Firebase (sostituisci con i tuoi dati)
         const firebaseConfig = {
             apiKey: "AIzaSyDqZqktT_B8DduRalNBAPRq7oVfF9q6WEw",
             authDomain: "washapp-e88c6.firebaseapp.com",
@@ -83,6 +77,68 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
+        // Salva il nome dell'operatore nei cookie
+        function salvaOperatore() {
+            const operatore = document.getElementById('operatore').value;
+            document.cookie = `operatore=${operatore}; path=/; max-age=${60 * 60 * 24 * 30}`; // Valido per 30 giorni
+        }
+        window.salvaOperatore = salvaOperatore; // Rendi la funzione accessibile globalmente
+
+        // Recupera il nome dell'operatore dai cookie all'avvio
+        function recuperaOperatore() {
+            const cookies = document.cookie.split('; ').reduce((acc, cookie) => {
+                const [key, value] = cookie.split('=');
+                acc[key] = value;
+                return acc;
+            }, {});
+
+            if (cookies.operatore) {
+                document.getElementById('operatore').value = cookies.operatore;
+            }
+        }
+
+        // Funzione per aggiungere il lavaggio al database
+        function aggiungiLavaggio() {
+            const operatore = document.getElementById('operatore').value;
+            const azienda = document.querySelector('input[name="azienda"]:checked')?.value;
+            const lavaggio = document.querySelector('input[name="lavaggio"]:checked')?.value;
+            const targa = document.getElementById('targa').value;
+
+            if (!operatore || !azienda || !lavaggio || !targa) {
+                alert('Tutti i campi devono essere compilati.');
+                return;
+            }
+
+            // Verifica che la targa sia valida
+            const targaRegex = /^[A-Za-z]{2}\d{3}[A-Za-z]{2}$/;
+            if (!targaRegex.test(targa)) {
+                alert('La targa deve essere nel formato corretto (es. AA000AA).');
+                return;
+            }
+
+            const nuovoLavaggio = {
+                date: new Date().toISOString(),
+                operator: operatore,
+                company: azienda,
+                washType: lavaggio,
+                licensePlate: targa
+            };
+
+            const dbRef = ref(database, 'lavaggi');
+            push(dbRef, nuovoLavaggio)
+                .then(() => {
+                    alert('Dati inviati con successo!');
+                    document.getElementById('targa').value = '';
+                })
+                .catch((error) => {
+                    console.error('Errore durante l\'invio dei dati:', error);
+                });
+        }
+        window.aggiungiLavaggio = aggiungiLavaggio; // Rendi la funzione accessibile globalmente
+
+        // Recupera il nome dell'operatore all'avvio della pagina
+        recuperaOperatore();
+
         let datiOriginali = [];
 
         function caricaDati() {
@@ -95,7 +151,7 @@
 
         function aggiornaTabella(dati) {
             const tabella = document.getElementById('tabella-dati');
-            tabella.innerHTML = `
+            tabella.innerHTML = ` 
                 <tr>
                     <th>Data</th>
                     <th>Operatore</th>
@@ -105,7 +161,7 @@
             `;
             for (let id in dati) {
                 const riga = document.createElement('tr');
-                riga.innerHTML = `
+                riga.innerHTML = ` 
                     <td>${new Date(dati[id].date).toLocaleString()}</td>
                     <td>${dati[id].operator}</td>
                     <td>${dati[id].company}</td>
@@ -147,11 +203,38 @@
 </head>
 <body>
     <div class="container">
-        <h1>Storico Lavaggi</h1>
+        <h1>WashApp</h1>
+
+        <h3>Inserisci il nome dell'operatore</h3>
+        <input type="text" id="operatore" placeholder="Nome operatore" oninput="salvaOperatore()">
+
+        <h3>Seleziona l'azienda</h3>
+        <div id="azienda-selection">
+            <input type="radio" name="azienda" value="U-SAVE" id="azienda1" checked>
+            <label for="azienda1">U-SAVE</label>
+
+            <input type="radio" name="azienda" value="VIVARENT" id="azienda2">
+            <label for="azienda2">VIVARENT</label>
+        </div>
+
+        <h3>Seleziona il lavaggio</h3>
+        <div id="lavaggio-selection">
+            <input type="radio" name="lavaggio" value="MADDALENA" id="lavaggio1" checked>
+            <label for="lavaggio1">MADDALENA</label>
+
+            <input type="radio" name="lavaggio" value="RIPOSO" id="lavaggio2">
+            <label for="lavaggio2">RIPOSO</label>
+        </div>
+
+        <h3>Inserisci la targa</h3>
+        <input type="text" id="targa" placeholder="Es. AA000AA">
+
+        <button onclick="aggiungiLavaggio()">Aggiungi Lavaggio</button>
+
+        <h3>Filtri</h3>
         <div class="filters">
-            <label for="mese">Seleziona Mese:</label>
             <select id="mese" onchange="applicaFiltri()">
-                <option value="">Tutti</option>
+                <option value="">Mese</option>
                 <option value="1">Gennaio</option>
                 <option value="2">Febbraio</option>
                 <option value="3">Marzo</option>
@@ -166,17 +249,17 @@
                 <option value="12">Dicembre</option>
             </select>
 
-            <label for="lavaggio">Tipo Lavaggio:</label>
             <select id="lavaggio" onchange="applicaFiltri()">
-                <option value="">Tutti</option>
+                <option value="">Lavaggio</option>
                 <option value="MADDALENA">MADDALENA</option>
                 <option value="RIPOSO">RIPOSO</option>
             </select>
         </div>
+
+        <h3>Lista Lavaggi</h3>
+        <table id="tabella-dati"></table>
+
         <button onclick="esportaExcel()">Esporta in Excel</button>
-        <table id="tabella-dati">
-            <!-- La tabella verrà popolata dinamicamente -->
-        </table>
     </div>
 </body>
 </html>
