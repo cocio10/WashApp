@@ -56,8 +56,12 @@
         button:hover {
             background-color: #0288D1;
         }
-        #filtro-mese {
-            margin-bottom: 10px;
+        .filters {
+            margin-bottom: 20px;
+        }
+        select {
+            margin: 5px;
+            padding: 5px;
         }
     </style>
 
@@ -111,22 +115,23 @@
             }
         }
 
-        function filtraPerMese(mese) {
-            console.log("Filtro per mese selezionato:", mese);
-            if (mese === "") {
-                aggiornaTabella(datiOriginali);
-                return;
-            }
+        function applicaFiltri() {
+            const mese = parseInt(document.getElementById('mese').value) || null;
+            const tipoLavaggio = document.getElementById('lavaggio').value || null;
+
             const datiFiltrati = Object.fromEntries(
                 Object.entries(datiOriginali).filter(([id, item]) => {
                     const data = new Date(item.date);
-                    return data.getMonth() + 1 === parseInt(mese);
+                    const filtroMese = mese ? data.getMonth() + 1 === mese : true;
+                    const filtroLavaggio = tipoLavaggio ? item.washType === tipoLavaggio : true;
+                    return filtroMese && filtroLavaggio;
                 })
             );
+
             aggiornaTabella(datiFiltrati);
         }
 
-        window.filtraPerMese = filtraPerMese;
+        window.applicaFiltri = applicaFiltri;
 
         window.addEventListener('load', caricaDati);
 
@@ -143,9 +148,9 @@
 <body>
     <div class="container">
         <h1>Storico Lavaggi</h1>
-        <div id="filtro-mese">
+        <div class="filters">
             <label for="mese">Seleziona Mese:</label>
-            <select id="mese" onchange="filtraPerMese(this.value)">
+            <select id="mese" onchange="applicaFiltri()">
                 <option value="">Tutti</option>
                 <option value="1">Gennaio</option>
                 <option value="2">Febbraio</option>
@@ -159,6 +164,13 @@
                 <option value="10">Ottobre</option>
                 <option value="11">Novembre</option>
                 <option value="12">Dicembre</option>
+            </select>
+
+            <label for="lavaggio">Tipo Lavaggio:</label>
+            <select id="lavaggio" onchange="applicaFiltri()">
+                <option value="">Tutti</option>
+                <option value="MADDALENA">MADDALENA</option>
+                <option value="RIPOSO">RIPOSO</option>
             </select>
         </div>
         <button onclick="esportaExcel()">Esporta in Excel</button>
