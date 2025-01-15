@@ -92,3 +92,74 @@
 
         // Funzione per aggiungere il lavaggio al database
         function aggiungiLavaggio() {
+            const operatore = document.getElementById('operatore').value;
+            const azienda = document.querySelector('input[name="azienda"]:checked')?.value;
+            const lavaggio = document.querySelector('input[name="lavaggio"]:checked')?.value;
+            const targa = document.getElementById('targa').value;
+
+            if (!operatore || !azienda || !lavaggio || !targa) {
+                alert('Tutti i campi devono essere compilati.');
+                return;
+            }
+
+            // Verifica che la targa sia valida
+            const targaRegex = /^[A-Za-z]{2}\d{3}[A-Za-z]{2}$/;
+            if (!targaRegex.test(targa)) {
+                alert('La targa deve essere nel formato corretto (es. AA000AA).');
+                return;
+            }
+
+            const nuovoLavaggio = {
+                date: new Date().toISOString(),
+                operator: operatore,
+                company: azienda,
+                washType: lavaggio,
+                licensePlate: targa
+            };
+
+            const dbRef = ref(database, 'lavaggi');
+            push(dbRef, nuovoLavaggio)
+                .then(() => {
+                    alert('Dati inviati con successo!');
+                    document.getElementById('targa').value = '';
+                })
+                .catch((error) => {
+                    console.error('Errore durante l\'invio dei dati:', error);
+                });
+        }
+        window.aggiungiLavaggio = aggiungiLavaggio; // Rendi la funzione accessibile globalmente
+
+        // Recupera il nome dell'operatore all'avvio della pagina
+        recuperaOperatore();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>WashApp</h1>
+
+        <h3>Inserisci il nome dell'operatore</h3>
+        <input type="text" id="operatore" placeholder="Nome operatore" oninput="salvaOperatore()">
+
+        <h3>Seleziona l'azienda</h3>
+        <div id="azienda-selection">
+            <input type="radio" name="azienda" value="U-SAVE" id="azienda1">
+            <label for="azienda1">U-SAVE</label>
+
+            <input type="radio" name="azienda" value="VIVARENT" id="azienda2">
+            <label for="azienda2">VIVARENT</label>
+        </div>
+
+        <h3>Seleziona il lavaggio</h3>
+        <div id="lavaggio-selection">
+            <input type="radio" name="lavaggio" value="MADDALENA" id="lavaggio1">
+            <label for="lavaggio1">MADDALENA</label>
+
+            <input type="radio" name="lavaggio" value="RIPOSO" id="lavaggio2">
+            <label for="lavaggio2">RIPOSO</label>
+        </div>
+
+        <input type="text" id="targa" placeholder="Inserisci la targa">
+        <button onclick="aggiungiLavaggio()">Aggiungi</button>
+    </div>
+</body>
+</html>
