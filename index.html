@@ -249,8 +249,8 @@
         <input type="text" id="targa" placeholder="Es. AA000AA">
 
         <button onclick="aggiungiLavaggio()">Aggiungi Lavaggio</button>
-
-        <h3>Filtri</h3>
+        <hr>
+        <h3>Lista Lavaggi</h3>
         <div class="filters">
             <select id="mese" onchange="applicaFiltri()">
                 <option value="">Mese</option>
@@ -274,8 +274,6 @@
                 <option value="RIPOSO">RIPOSO</option>
             </select>
         </div>
-
-        <h3>Lista Lavaggi</h3>
         <table id="tabella-dati"></table>
 
         <button onclick="esportaExcel()">Esporta in Excel</button>
